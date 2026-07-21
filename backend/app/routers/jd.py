@@ -1,4 +1,5 @@
 import fitz  # PyMuPDF
+import traceback
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.schemas.jd import JDTextInput
 
@@ -10,14 +11,14 @@ _ALLOWED_MIME = {"application/pdf", "application/octet-stream"}
 
 @router.post("/upload")
 async def upload_jd_pdf(file: UploadFile = File(...)):
-    """
-    Upload a JD as a PDF. Returns the extracted plain text.
-    Accepts: application/pdf, max 5 MB.
-    """
+    print(f"[jd/upload] filename={file.filename} content_type={file.content_type}")
+
     if file.content_type not in _ALLOWED_MIME:
+        print(f"[jd/upload] REJECTED mime: {file.content_type}")
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
     contents = await file.read()
+    print(f"[jd/upload] read {len(contents)} bytes")
 
     if len(contents) > _MAX_PDF_BYTES:
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 5 MB.")
@@ -26,15 +27,15 @@ async def upload_jd_pdf(file: UploadFile = File(...)):
         doc = fitz.open(stream=contents, filetype="pdf")
         text = "\n".join(page.get_text() for page in doc)
         doc.close()
-    except Exception:
+        print(f"[jd/upload] extracted {len(text)} chars")
+    except Exception as e:
+        print(f"[jd/upload] PyMuPDF error: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail="Could not extract text from the PDF.")
 
     text = text.strip()
     if not text:
-        raise HTTPException(
-            status_code=400,
-            detail="PDF appears to be empty or contains only images (no extractable text).",
-        )
+        raise HTTPException(status_code=400, detail="PDF appears to be empty or contains only images.")
 
     return {"jd_text": text, "filename": file.filename}
 
