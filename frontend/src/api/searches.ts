@@ -53,7 +53,7 @@ export const runSearch = async (
 export const uploadJD = async (file: File): Promise<{ jd_text: string; filename: string }> => {
   const form = new FormData()
   form.append('file', file)
-  const baseURL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+  const baseURL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
   const response = await fetch(`${baseURL}/jd/upload`, {
     method: 'POST',
     body: form,
