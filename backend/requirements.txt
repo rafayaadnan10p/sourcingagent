@@ -21,7 +21,7 @@ pypdf==4.3.1               # PDF text extraction (pure Python, no binary deps)
 # Export
 openpyxl==3.1.5             # Excel (.xlsx) export
 
-# SSL — uses Windows certificate store in corporate environments
+# SSL — used only on Windows for corporate proxy (skipped on Linux/Railway)
 truststore==0.10.4
 
 # Rate limiting

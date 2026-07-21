@@ -16,14 +16,21 @@ Returns a flat list of result dicts:
 To swap providers later: implement the same return shape and update only this file.
 """
 
-import ssl
-import truststore
+import sys
 import httpx
 from app.config import get_settings
 
-# Use Windows' certificate store so the corporate proxy CA is trusted.
-# This is equivalent to what browsers do automatically.
-_ssl_ctx = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+# On Windows (local dev with corporate proxy): use truststore for SSL
+# On Linux (Railway/production): use standard httpx SSL (certifi)
+if sys.platform == 'win32':
+    try:
+        import ssl
+        import truststore
+        _ssl_verify = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    except Exception:
+        _ssl_verify = True  # fallback if truststore unavailable
+else:
+    _ssl_verify = True  # Linux: standard SSL works fine
 
 _SERPER_ENDPOINT = "https://google.serper.dev/search"
 _RESULTS_PER_QUERY = 10        # Serper standard plan cap
@@ -53,7 +60,7 @@ def run_searches(queries: list[str]) -> list[dict]:
 
     successful_queries = 0
     all_results: list[dict] = []
-    with httpx.Client(timeout=30, verify=_ssl_ctx) as client:
+    with httpx.Client(timeout=30, verify=_ssl_verify) as client:
         for query in queries:
             if not query or not query.strip():
                 continue
