@@ -1,0 +1,31 @@
+# Core framework
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+
+# Database
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg2-binary==2.9.10
+
+# Settings / env
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+
+# LLM
+openai==1.57.4
+
+# File handling
+python-multipart==0.0.20   # multipart form / file upload
+pymupdf==1.25.1             # PDF text extraction
+
+# Export
+openpyxl==3.1.5             # Excel (.xlsx) export
+
+# SSL — uses Windows certificate store in corporate environments
+truststore==0.10.4
+
+# Rate limiting
+slowapi==0.1.9
+
+# HTTP client (used internally by openai SDK; explicit pin for stability)
+httpx==0.28.1

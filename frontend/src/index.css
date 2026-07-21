@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* ── Theme tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --bg:              #f7f5f0;
+  --bg-card:         #ffffff;
+  --bg-sidebar:      #d9d6d0;
+  --bg-filter:       #edeae4;
+  --border:          rgba(0,0,0,0.08);
+  --border-sidebar:  #b0aba3;
+  --text-primary:    #1a1a1a;
+  --text-secondary:  #4b5563;
+  --text-muted:      #9ca3af;
+  --accent:          #0f172a;
+  --accent-hover:    #1e293b;
+  --shimmer-from:    #ebe8e2;
+  --shimmer-mid:     #f5f2ed;
+}
+
+html.dark {
+  --bg:              #1e1c1a;
+  --bg-card:         #272523;
+  --bg-sidebar:      #2d2b28;
+  --bg-filter:       #2a2825;
+  --border:          rgba(255,255,255,0.07);
+  --border-sidebar:  #3d3b38;
+  --text-primary:    #f0ece6;
+  --text-secondary:  #d8d2cb;
+  --text-muted:      #b8b3ac;
+  --accent:          #ede9e3;
+  --accent-hover:    #c4bfb8;
+  --shimmer-from:    #2e2c29;
+  --shimmer-mid:     #353330;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Figtree', system-ui, sans-serif;
+  overflow: hidden;  /* prevent any page-level scroll */
+}
+
+/* ── Tailwind overrides in dark mode ─────────────────────────────────────── */
+html.dark .bg-white            { background-color: var(--bg-card) !important; }
+html.dark .bg-gray-50          { background-color: var(--bg) !important; }
+html.dark .bg-gray-100         { background-color: var(--bg-filter) !important; }
+html.dark .text-gray-900       { color: var(--text-primary) !important; }
+html.dark .text-gray-800       { color: var(--text-primary) !important; }
+html.dark .text-gray-700       { color: var(--text-secondary) !important; }
+html.dark .text-gray-600       { color: var(--text-secondary) !important; }
+html.dark .text-gray-500       { color: var(--text-muted) !important; }
+html.dark .text-gray-400       { color: var(--text-muted) !important; }
+html.dark .border-gray-200     { border-color: var(--border-sidebar) !important; }
+html.dark .border-gray-300     { border-color: var(--border-sidebar) !important; }
+html.dark .border-gray-100     { border-color: var(--border) !important; }
+html.dark .divide-gray-100 > * { border-color: var(--border) !important; }
+html.dark .placeholder-gray-400::placeholder { color: var(--text-muted) !important; }
+
+/* Links in dark mode */
+html.dark .text-blue-600 { color: #7ab3f5 !important; }
+html.dark .text-blue-500 { color: #7ab3f5 !important; }
+html.dark .text-blue-700 { color: #93c5fd !important; }html.dark .text-purple-700 { color: #c4b5fd !important; }
+html.dark .text-emerald-700 { color: #6ee7b7 !important; }
+/* Green accents — readable on dark green backgrounds */
+html.dark .text-green-700 { color: #6ee7b7 !important; }
+html.dark .text-green-600 { color: #6ee7b7 !important; }
+html.dark .text-green-500 { color: #86efac !important; }
+html.dark .text-green-300 { color: #86efac !important; }
+
+/* Yellow accents */
+html.dark .text-yellow-700 { color: #fde68a !important; }
+html.dark .text-yellow-500 { color: #fde68a !important; }
+html.dark .text-yellow-400 { color: #fde68a !important; }
+
+/* Red accents */
+html.dark .text-red-600 { color: #fca5a5 !important; }
+html.dark .text-red-500 { color: #fca5a5 !important; }
+html.dark .text-red-400 { color: #fca5a5 !important; }
+
+/* Score badge inner backgrounds */
+html.dark .bg-green-100  { background-color: #1a3320 !important; }
+html.dark .bg-yellow-100 { background-color: #332c10 !important; }
+html.dark .bg-red-100    { background-color: #331818 !important; }
+html.dark .bg-blue-100   { background-color: #1a2540 !important; }
+html.dark .bg-purple-100 { background-color: #2a1a3a !important; }
+html.dark .bg-emerald-100 { background-color: #1a3328 !important; }
+
+/* Tinted action backgrounds */
+html.dark .bg-yellow-50 { background-color: #2a2510 !important; }
+html.dark .bg-blue-50   { background-color: #1a2030 !important; }
+html.dark .border-blue-200 { border-color: #2a3a5a !important; }
+html.dark .border-blue-400 { border-color: #4a6a9a !important; }
+html.dark input,
+html.dark textarea,
+html.dark select  {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+/* Cards in dark: white bg → dark card, shadows softer */
+html.dark .shadow-sm  { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
+html.dark .shadow-md  { box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; }
+html.dark .shadow-lg  { box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important; }
+
+/* Score-tinted cards in dark mode — lighter pastel tints on dark bg */
+html.dark .bg-green-50  { background-color: #1e2b1e !important; }
+html.dark .bg-yellow-50 { background-color: #2a2610 !important; }
+html.dark .bg-red-50    { background-color: #2b1a1a !important; }
+html.dark .border-green-200  { border-color: #2d4a2d !important; }
+html.dark .border-yellow-200 { border-color: #4a3d10 !important; }
+html.dark .border-red-200    { border-color: #4a2020 !important; }
+
+/* ── Shimmer animation ───────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-mid) 50%, var(--shimmer-from) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+
