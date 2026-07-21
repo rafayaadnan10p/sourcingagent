@@ -53,11 +53,18 @@ export const runSearch = async (
 export const uploadJD = async (file: File): Promise<{ jd_text: string; filename: string }> => {
   const form = new FormData()
   form.append('file', file)
-  // Set Content-Type to undefined so axios lets the browser set it with the correct multipart boundary
-  const { data } = await api.post('/jd/upload', form, {
-    headers: { 'Content-Type': undefined },
+  const baseURL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+  const response = await fetch(`${baseURL}/jd/upload`, {
+    method: 'POST',
+    // No Content-Type header — browser sets it automatically with correct multipart boundary
+    headers: { 'ngrok-skip-browser-warning': 'true' },
+    body: form,
   })
-  return data
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Upload failed')
+  }
+  return response.json()
 }
 
 export const listSearches = async (): Promise<SearchSummary[]> => {
