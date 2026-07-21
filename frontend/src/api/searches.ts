@@ -56,8 +56,6 @@ export const uploadJD = async (file: File): Promise<{ jd_text: string; filename:
   const baseURL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
   const response = await fetch(`${baseURL}/jd/upload`, {
     method: 'POST',
-    // No Content-Type header — browser sets it automatically with correct multipart boundary
-    headers: { 'ngrok-skip-browser-warning': 'true' },
     body: form,
   })
   if (!response.ok) {
