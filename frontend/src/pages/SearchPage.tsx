@@ -67,8 +67,9 @@ export default function SearchPage() {
       const result = await uploadJD(file)
       setJdText(result.jd_text)
       setError(null)
-    } catch {
-      setError('Could not extract text from the PDF. Please paste the JD manually.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(`PDF upload failed: ${msg}`)
     }
   }
 
