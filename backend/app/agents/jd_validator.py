@@ -6,9 +6,15 @@ Public interface:
     Returns None if valid, or an error message string if not a JD.
 """
 
+import os
+import json
 from openai import OpenAI
 from app.config import get_settings
 from app.utils.token_logger import log_tokens
+
+# Clear any proxy env vars that might block outbound connections on cloud platforms
+for _var in ('HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy'):
+    os.environ.pop(_var, None)
 
 _VALIDATION_MODEL = "gpt-4o-mini"
 
