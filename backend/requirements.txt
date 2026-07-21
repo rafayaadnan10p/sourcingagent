@@ -16,7 +16,7 @@ openai==1.57.4
 
 # File handling
 python-multipart==0.0.20   # multipart form / file upload
-pymupdf==1.25.1             # PDF text extraction
+pypdf==4.3.1               # PDF text extraction (pure Python, no binary deps)
 
 # Export
 openpyxl==3.1.5             # Excel (.xlsx) export

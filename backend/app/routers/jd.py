@@ -1,5 +1,6 @@
-import fitz  # PyMuPDF
+import io
 import traceback
+from pypdf import PdfReader
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.schemas.jd import JDTextInput
 
@@ -24,12 +25,11 @@ async def upload_jd_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 5 MB.")
 
     try:
-        doc = fitz.open(stream=contents, filetype="pdf")
-        text = "\n".join(page.get_text() for page in doc)
-        doc.close()
-        print(f"[jd/upload] extracted {len(text)} chars")
+        reader = PdfReader(io.BytesIO(contents))
+        text = "\n".join(page.extract_text() or "" for page in reader.pages)
+        print(f"[jd/upload] extracted {len(text)} chars from {len(reader.pages)} pages")
     except Exception as e:
-        print(f"[jd/upload] PyMuPDF error: {e}")
+        print(f"[jd/upload] pypdf error: {e}")
         traceback.print_exc()
         raise HTTPException(status_code=400, detail="Could not extract text from the PDF.")
 
