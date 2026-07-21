@@ -4,7 +4,11 @@ import axios from 'axios'
 // In production: VITE_API_URL is set to the Render backend URL
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '/api',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    // Bypass ngrok's browser warning interstitial page
+    'ngrok-skip-browser-warning': 'true',
+  },
 })
 
 export default api
