@@ -1,12 +1,140 @@
-# SourcingAgent
+# AI Sourcing Agent — 10Pearls Internal HR Tool
 
+Automates X-ray Boolean sourcing: paste a JD → get a ranked shortlist of candidate profiles.
 
+---
 
-## Getting started
+## Live Deployment
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+| Service | URL | Platform |
+|---------|-----|----------|
+| **Frontend** | https://sourcingagent-five.vercel.app | Vercel (always-on, free) |
+| **Backend API** | https://sourcingagent-api5.onrender.com | Render (free tier) |
+| **Database** | Railway PostgreSQL | Railway (free tier) |
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
+
+## Tech Stack
+
+- **Frontend:** React + Vite + TypeScript + Tailwind CSS
+- **Backend:** FastAPI (Python 3.12)
+- **Database:** PostgreSQL (SQLAlchemy + Alembic)
+- **LLM:** OpenAI API (gpt-4o for agents, gpt-4o-mini for JD validation)
+- **Web Search:** Serper API (Google X-ray search)
+
+---
+
+## Local Development
+
+### Prerequisites
+- Python 3.12 (via uv: `C:\Users\rafaya.adnan\AppData\Roaming\uv\python\cpython-3.12.13-windows-x86_64-none\python.exe`)
+- Node.js 24+
+- Docker Desktop (for local PostgreSQL)
+
+### Start everything locally
+
+```powershell
+# 1. Start PostgreSQL
+docker compose up -d
+
+# 2. Start backend (from project root)
+C:\Users\rafaya.adnan\sourcingagent\backend\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000 --app-dir C:\Users\rafaya.adnan\sourcingagent\backend
+
+# 3. Start frontend (separate terminal)
+cd frontend; npm run dev
+```
+
+Open: http://localhost:5173
+
+### Environment variables (backend/.env)
+Copy `backend/.env.example` to `backend/.env` and fill in:
+- `OPENAI_API_KEY` — from platform.openai.com/api-keys
+- `SERPER_API_KEY` — from serper.dev
+- `DATABASE_URL` — local: `postgresql://sourcingagent:password@localhost:5432/sourcingagent`
+
+---
+
+## Deploying Updates
+
+### Backend (Render auto-deploys from GitHub on push to main)
+```powershell
+git push github main
+```
+If Render doesn't auto-deploy, go to Render dashboard → Deployments → Manual Deploy.
+
+### Frontend (Vercel auto-deploys from GitHub on push to main)
+```powershell
+git push github main
+```
+
+### Push to both GitHub and GitLab
+```powershell
+git push github main  # Render + Vercel watch this
+git push origin main  # 10Pearls GitLab backup
+```
+
+---
+
+## Known Limitations & Maintenance
+
+### ⚠️ Critical — Action Required
+
+| Issue | Deadline | Action |
+|-------|----------|--------|
+| **Railway PostgreSQL expires** | ~August 20, 2026 | Upgrade Railway DB to paid tier OR migrate to Render PostgreSQL before this date. All data will be lost if it expires. |
+
+### Render cold start
+Free Render tier spins down after **15 minutes of inactivity**. First request after idle takes ~60 seconds. HR testers should wait — it is not broken.
+
+For always-on: upgrade Render service to **Starter ($7/month)**.
+
+### API quotas
+| API | Free Quota | Used per search |
+|-----|-----------|-----------------|
+| Serper | 2,500 queries/month | 3 queries |
+| OpenAI | Pay-as-you-go | ~$0.02–0.04/search |
+
+### No login yet
+All users share one account. Past searches are visible to everyone. Login/auth is planned for a future phase.
+
+---
+
+## Architecture
+
+```
+User browser
+    ↓ HTTPS
+Vercel (React frontend)
+    ↓ HTTPS
+Render (FastAPI backend)
+    ├── OpenAI API (JD validation + search string generation + relevance scoring)
+    ├── Serper API (Google X-ray web search)
+    └── Railway PostgreSQL (searches, results, starred profiles)
+```
+
+---
+
+## Feature Status
+
+| Feature | Status |
+|---------|--------|
+| JD upload (PDF + text paste) | ✅ Done |
+| X-ray search string generation (Agent 1) | ✅ Done |
+| Serper web search | ✅ Done |
+| Relevance scoring (Agent 2) | ✅ Done |
+| Top 20 shortlist | ✅ Done |
+| Past searches page | ✅ Done |
+| Starred profiles | ✅ Done |
+| Recruited profiles | ✅ Done |
+| Export (Excel + CSV) | ✅ Done |
+| Dark / light mode | ✅ Done |
+| Location filter, #OpenToWork, target companies | ✅ Done |
+| JD validation (rejects non-JD input) | ✅ Done |
+| Login / auth (Microsoft OAuth) | 🔲 Planned |
+| Google Sheets export | 🔲 Planned |
+| OneDrive export | 🔲 Planned |
+| Admin panel | 🔲 Planned |
+
 
 ## Add your files
 
