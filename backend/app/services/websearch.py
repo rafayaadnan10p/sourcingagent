@@ -72,6 +72,9 @@ def run_searches(queries: list[str]) -> list[dict]:
             except httpx.HTTPStatusError as exc:
                 print(f"[websearch] Skipping query ({exc.response.status_code}): {query[:120]}")
                 continue
+            except httpx.RequestError as exc:
+                print(f"[websearch] Network error for query '{query[:80]}': {exc}")
+                continue
 
             successful_queries += 1
             data = response.json()

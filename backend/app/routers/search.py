@@ -30,14 +30,23 @@ def run_search(request: Request, payload: JDTextInput, db: Session = Depends(get
     validation_error = validate_jd(payload.jd_text)
     if validation_error:
         raise HTTPException(status_code=422, detail=validation_error)
-    search = run_pipeline(
-        db=db,
-        jd_text=payload.jd_text,
-        platform_scope=payload.platform_scope,
-        location_override=payload.location_override,
-        target_companies=payload.target_companies,
-        open_to_work=payload.open_to_work,
-    )
+    try:
+        search = run_pipeline(
+            db=db,
+            jd_text=payload.jd_text,
+            platform_scope=payload.platform_scope,
+            location_override=payload.location_override,
+            target_companies=payload.target_companies,
+            open_to_work=payload.open_to_work,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:
+        print(f"[search] Unexpected pipeline error: {exc}")
+        raise HTTPException(
+            status_code=503,
+            detail="The search service is temporarily unavailable. Please try again in a moment."
+        )
     return search
 
 
