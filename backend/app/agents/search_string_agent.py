@@ -59,17 +59,43 @@ def detect_country(location_override: str, jd_text: str) -> tuple[str | None, st
 _SYSTEM_PROMPT = """
 You are a technical sourcer's Boolean search assistant.
 
-When given a job description (JD), generate X-ray Google search strings that a recruiter
-can paste directly into Google to find candidate profiles on the web.
+You receive either a job description (JD) OR a person's name/name+skills. Handle each differently:
 
-What to extract from the JD:
+━━ CASE 1 — Job description input ━━
+Extract from the JD:
 - Core job title + realistic synonyms recruiters actually use
 - Must-have skills / tools (explicitly required)
 - Nice-to-have skills (mentioned but not hard requirements)
 - Seniority / years of experience
 - Location (city, country)
 
-Output rules:
+Generate exactly three queries:
+  1. STRICT — job title + must-have skills (2–3 max). If location is in JD, include it.
+     Do NOT chain more than 4 AND conditions total.
+  2. BROAD — job title synonyms OR'd together + skills grouped with OR. If location is
+     in JD, include it. Do NOT use more than 4 AND conditions total.
+  3. EXTENDED (country-wide) — same as BROAD but drop the specific city, keeping only the
+     country (e.g. "Pakistan" not "Islamabad, Pakistan"). Do NOT use more than 3 AND conditions.
+
+Location rule (CRITICAL for JD searches):
+  - Use quoted "City, Country" phrase in queries 1 and 2 (e.g. "Islamabad, Pakistan").
+  - For query 1, also add intitle:"City" to strongly filter for currently-based candidates.
+    Example: intitle:"Islamabad" site:pk.linkedin.com/in "Sr QA Engineer" AND Python
+  - If the JD has NO location, all three queries are location-free.
+
+━━ CASE 2 — Person name input ━━
+If the input is a person's name (optionally with a role/skill hint), e.g.:
+  "Ahmad Hanif" or "Ahmad Hanif, python" or "Sarah Khan - AI developer"
+
+Generate exactly three simple name-focused queries. Do NOT use complex Boolean logic:
+  1. NAME STRICT — "FirstName LastName" <site_op> [top skill if provided]
+     Example: "Ahmad Hanif" site:pk.linkedin.com/in python
+  2. NAME BROAD  — "FirstName LastName" <site_op>
+     Example: "Ahmad Hanif" site:pk.linkedin.com/in
+  3. NAME EXTENDED — "FirstName LastName" (no site: restriction, catches other platforms)
+     Example: "Ahmad Hanif" linkedin
+
+━━ Shared output rules ━━
 - Return ONLY valid JSON — no markdown fences, no prose, no extra keys.
 - The JSON must match this exact shape:
   {
@@ -77,31 +103,8 @@ Output rules:
       {"label": "<short descriptive name>", "query": "<full ready-to-paste Google search string>"}
     ]
   }
-- Each query must be a valid Google search string using Boolean operators:
-  AND, OR, NOT, quotes for exact phrases, parentheses for grouping.
-- Always generate exactly these three queries:
-    1. STRICT — job title + must-have skills (2–3 max). If location is in JD, include it.
-       Do NOT chain more than 4 AND conditions total.
-    2. BROAD — job title synonyms OR'd together + skills grouped with OR. If location is
-       in JD, include it. Do NOT use more than 4 AND conditions total.
-    3. EXTENDED — same as BROAD but drop the specific city, keeping only the country
-       if one was detected (e.g. use "Pakistan" not "Islamabad, Pakistan"). If no
-       country was detected, omit location entirely. This surfaces strong candidates
-       who may be in other cities within the same country or willing to relocate.
-       Label it "EXTENDED (country-wide)". Do NOT use more than 3 AND conditions.
-- Location rule (CRITICAL):
-    - If the JD specifies a location, use it as a quoted "City, Country" phrase
-      (e.g. "Islamabad, Pakistan") in queries 1 and 2. LinkedIn shows CURRENT location
-      in this exact format — this avoids matching candidates who only mention the city
-      in past experience. Do NOT use just the city name alone.
-    - For the STRICT query (query 1), also add intitle:"City" — LinkedIn page titles
-      include current location so this strongly filters for currently-based candidates.
-      Example: intitle:"Islamabad" site:pk.linkedin.com/in "Sr QA Engineer" AND Python
-    - Query 3 (EXTENDED) intentionally omits location as a fallback only.
-    - If the JD does NOT specify a location, all three queries are location-free.
-- Google returns very few results when there are too many AND conditions.
-  Fewer ANDs = more results. This is critical.
 - Apply the site: operator exactly as instructed. Do not add or change it.
+- Google returns very few results with too many AND conditions — keep queries short.
 - Do not put any explanation inside the query field — only the search string itself.
 """.strip()
 
@@ -120,19 +123,23 @@ def _build_user_message(jd_text: str, platform_scope: str, location_override: st
     else:
         if platform_scope == "linkedin":
             country_code, country_site = detect_country(location_override, jd_text)
-            effective_site = country_site or _PLATFORM_SITE["linkedin"]
+            # Default to Pakistan (pk.linkedin.com) when no location is detected
+            if country_code is None:
+                country_code = "pk"
+            effective_site = country_site or "site:pk.linkedin.com/in"
             country_names = {
                 "pk": "Pakistan", "ae": "UAE", "in": "India",
                 "de": "Germany", "gb": "United Kingdom", "ca": "Canada",
             }
-            country_name = country_names.get(country_code or "", "")
+            country_name = country_names.get(country_code, "")
         else:
             effective_site = _PLATFORM_SITE.get(platform_scope, "")
             country_name = ""
 
         site_instruction = (
-            f"Generate queries restricted to: {effective_site}\n"
-            "All queries (including EXTENDED) must include this site: operator exactly as shown.\n"
+            f"Queries 1 and 2 must use this site: operator exactly: {effective_site}\n"
+            "Query 3 (EXTENDED / NAME EXTENDED) must use site:linkedin.com/in (global, no country prefix) "
+            "to catch candidates who may not appear in the country-specific subdomain.\n"
             + (f"For the EXTENDED query, use '{country_name}' as the location (not the specific city)." if country_name else
                "For the EXTENDED query, omit location entirely.")
         )

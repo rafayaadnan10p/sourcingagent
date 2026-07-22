@@ -80,6 +80,9 @@ def run_pipeline(
     # ── Deterministic URL-based location penalty ──────────────────────────────
     # If the JD/override specifies a country, cap scores for clearly wrong-country URLs
     expected_country, _ = detect_country(location_override, jd_text)
+    # Default to Pakistan for LinkedIn when no location explicitly specified
+    if expected_country is None and platform_scope == "linkedin":
+        expected_country = "pk"
     if expected_country:
         _country_re = re.compile(r'https?://([a-z]{2})\.linkedin\.com/', re.IGNORECASE)
         for r in raw_results:
