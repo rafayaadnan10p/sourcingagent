@@ -94,6 +94,8 @@ export const getStarred = async (): Promise<SearchResult[]> => {
   return data
 }
 
-export const exportExcelUrl = (searchId: string) => `/api/searches/${searchId}/export/excel`
-export const exportCsvUrl = (searchId: string) => `/api/searches/${searchId}/export/csv`
+const _backendBase = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
+
+export const exportExcelUrl = (searchId: string) => `${_backendBase}/searches/${searchId}/export/excel`
+export const exportCsvUrl = (searchId: string) => `${_backendBase}/searches/${searchId}/export/csv`
 
