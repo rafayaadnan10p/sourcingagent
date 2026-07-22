@@ -33,7 +33,7 @@ else:
     _ssl_verify = True  # Linux: standard SSL works fine
 
 _SERPER_ENDPOINT = "https://google.serper.dev/search"
-_RESULTS_PER_QUERY = 20        # Serper charges per call, not per result — 20 is free
+_RESULTS_PER_QUERY = 10        # Serper free plan caps num at 10 per query
 _SERPER_COST_PER_QUERY = 0.0   # Free plan: 2,500 queries/month included (update when upgrading)
 
 
