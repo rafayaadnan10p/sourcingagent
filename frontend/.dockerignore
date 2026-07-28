@@ -1,0 +1,8 @@
+# Never copy secrets or local build artefacts into the image
+.env
+.env.*
+node_modules/
+dist/
+*.log
+.vscode/
+.idea/

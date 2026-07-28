@@ -1,0 +1,23 @@
+# Never copy secrets or local environment into the image
+.env
+.env.*
+
+# Python runtime artifacts
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Test / tooling artefacts
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
