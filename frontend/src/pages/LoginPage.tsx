@@ -10,7 +10,9 @@ export default function LoginPage() {
   const wordmark = theme === 'dark' ? wordmarkDark : wordmarkLight
 
   const handleLogin = () => {
-    instance.loginRedirect(loginRequest)
+    instance.loginPopup(loginRequest).catch((e) => {
+      console.error('Login failed:', e)
+    })
   }
 
   return (
