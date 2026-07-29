@@ -8,8 +8,8 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: CLIENT_ID,
     authority: `https://login.microsoftonline.com/${TENANT_ID}`,
-    // Dynamic redirectUri works on any deployment (VM, Vercel, localhost)
-    redirectUri: window.location.origin,
+    // Must match the redirect URIs registered in Azure AD exactly
+    redirectUri: `${window.location.origin}/auth/callback`,
     postLogoutRedirectUri: window.location.origin,
   },
   cache: {
