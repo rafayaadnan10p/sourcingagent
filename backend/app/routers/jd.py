@@ -1,8 +1,12 @@
 import io
 import traceback
 from pypdf import PdfReader
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from sqlalchemy.orm import Session
 from app.schemas.jd import JDTextInput
+from app.database import get_db
+from app.models.user import User
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/jd", tags=["JD"])
 
@@ -11,7 +15,11 @@ _ALLOWED_MIME = {"application/pdf", "application/octet-stream"}
 
 
 @router.post("/upload")
-async def upload_jd_pdf(file: UploadFile = File(...)):
+async def upload_jd_pdf(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     print(f"[jd/upload] filename={file.filename} content_type={file.content_type}")
 
     if file.content_type not in _ALLOWED_MIME:

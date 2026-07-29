@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     # Database
     database_url: str
 
+    # Microsoft Azure AD auth
+    azure_client_id: str = ""
+    azure_tenant_id: str = ""
+    require_auth: bool = False   # Set to True in production to enforce Microsoft login
+
     # CORS — comma-separated origins stored as a single string in .env
     allowed_origins: str = "http://localhost:5173"
 

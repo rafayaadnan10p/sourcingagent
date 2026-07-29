@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.dependencies.auth import get_current_user
 from app.limiter import limiter
 from app.models.search import Search
 from app.models.search_result import SearchResult
+from app.models.user import User
 from app.schemas.jd import JDTextInput
 from app.schemas.search import SearchOut, SearchSummary, SearchResultOut
 from app.services.pipeline import run_pipeline
@@ -21,7 +23,12 @@ _RATE_LIMIT = f"{_settings.rate_limit_per_minute}/minute"
 
 @router.post("/search", response_model=SearchOut)
 @limiter.limit(_RATE_LIMIT)
-def run_search(request: Request, payload: JDTextInput, db: Session = Depends(get_db)):
+def run_search(
+    request: Request,
+    payload: JDTextInput,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """
     Full pipeline: JD text → search strings → web search → relevance scoring → DB save.
     Returns the complete ranked shortlist.
@@ -38,6 +45,7 @@ def run_search(request: Request, payload: JDTextInput, db: Session = Depends(get
             location_override=payload.location_override,
             target_companies=payload.target_companies,
             open_to_work=payload.open_to_work,
+            user_id=current_user.id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
@@ -51,9 +59,9 @@ def run_search(request: Request, payload: JDTextInput, db: Session = Depends(get
 
 
 @router.get("/searches", response_model=list[SearchSummary])
-def list_searches(db: Session = Depends(get_db)):
-    """List all past searches, newest first (for the Past Searches sidebar page)."""
-    searches = db.query(Search).order_by(Search.created_at.desc()).all()
+def list_searches(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """List all past searches for the current user, newest first."""
+    searches = db.query(Search).filter(Search.user_id == current_user.id).order_by(Search.created_at.desc()).all()
     return [
         SearchSummary(
             id=s.id,
@@ -68,7 +76,7 @@ def list_searches(db: Session = Depends(get_db)):
 
 
 @router.get("/searches/{search_id}", response_model=SearchOut)
-def get_search(search_id: uuid.UUID, db: Session = Depends(get_db)):
+def get_search(search_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Get the full results of a specific past search."""
     search = db.query(Search).filter(Search.id == search_id).first()
     if not search:
@@ -77,7 +85,7 @@ def get_search(search_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.delete("/searches/{search_id}", status_code=204)
-def delete_search(search_id: uuid.UUID, db: Session = Depends(get_db)):
+def delete_search(search_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Permanently delete a search and all its results."""
     search = db.query(Search).filter(Search.id == search_id).first()
     if not search:
@@ -87,7 +95,7 @@ def delete_search(search_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/results/{result_id}/star", response_model=SearchResultOut)
-def toggle_star(result_id: uuid.UUID, db: Session = Depends(get_db)):
+def toggle_star(result_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Star or unstar a candidate profile (toggles the current state)."""
     result = db.query(SearchResult).filter(SearchResult.id == result_id).first()
     if not result:
@@ -99,7 +107,7 @@ def toggle_star(result_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/results/{result_id}/recruit", response_model=SearchResultOut)
-def toggle_recruit(result_id: uuid.UUID, db: Session = Depends(get_db)):
+def toggle_recruit(result_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Mark or unmark a candidate as recruited (toggles the current state)."""
     result = db.query(SearchResult).filter(SearchResult.id == result_id).first()
     if not result:
@@ -111,10 +119,12 @@ def toggle_recruit(result_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.get("/results/starred", response_model=list[SearchResultOut])
-def get_starred_profiles(db: Session = Depends(get_db)):
-    """All starred profiles across all searches (Starred Profiles sidebar page)."""
+def get_starred_profiles(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """All starred profiles for the current user across all their searches."""
     return (
         db.query(SearchResult)
+        .join(Search, SearchResult.search_id == Search.id)
+        .filter(Search.user_id == current_user.id)
         .filter(SearchResult.is_starred.is_(True))
         .order_by(SearchResult.created_at.desc())
         .all()

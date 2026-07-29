@@ -7,8 +7,11 @@ RUN npm ci
 
 COPY . .
 
-# Do NOT set VITE_API_URL — the app will default to the /api prefix,
-# which nginx proxies to the backend container.
+# VITE_REQUIRE_AUTH is passed from docker-compose build args.
+# When true: Microsoft login is enforced. When false/unset: open access (dev/Vercel).
+ARG VITE_REQUIRE_AUTH=false
+ENV VITE_REQUIRE_AUTH=$VITE_REQUIRE_AUTH
+
 RUN npm run build
 
 # ── Stage 2: serve with nginx ─────────────────────────────────────────────────

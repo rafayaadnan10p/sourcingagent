@@ -1,4 +1,5 @@
 import api from './client'
+import { getIdToken } from '../auth/msalConfig'
 
 export interface SearchResult {
   id: string
@@ -54,9 +55,15 @@ export const uploadJD = async (file: File): Promise<{ jd_text: string; filename:
   const form = new FormData()
   form.append('file', file)
   const baseURL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
+  const headers: Record<string, string> = {}
+  if (import.meta.env.VITE_REQUIRE_AUTH === 'true') {
+    const token = await getIdToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
+  }
   const response = await fetch(`${baseURL}/jd/upload`, {
     method: 'POST',
     body: form,
+    headers,
   })
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))

@@ -27,5 +27,8 @@ truststore==0.10.4
 # Rate limiting
 slowapi==0.1.9
 
+# Microsoft Azure AD auth — JWT validation
+python-jose[cryptography]==3.3.0
+
 # HTTP client (used internally by openai SDK; explicit pin for stability)
 httpx==0.28.1

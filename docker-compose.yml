@@ -35,7 +35,10 @@ services:
 
   # ── React frontend + nginx reverse proxy ──────────────────────────────────
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_REQUIRE_AUTH: ${VITE_REQUIRE_AUTH:-true}   # baked into the JS bundle at build time
     ports:
       - "80:80"       # Only this container is exposed to the outside world
     depends_on:

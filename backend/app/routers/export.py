@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.search import Search
 from app.models.search_result import SearchResult
+from app.models.user import User
+from app.dependencies.auth import get_current_user
 from app.export.excel import generate_excel
 from app.export.csv_export import generate_csv
 from app.utils.jd_parser import extract_search_title
@@ -54,7 +56,7 @@ def _get_all_results(search_id: uuid.UUID, db: Session) -> tuple:
 
 
 @router.get("/searches/{search_id}/export/excel")
-def export_excel(search_id: uuid.UUID, db: Session = Depends(get_db)):
+def export_excel(search_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Download all results as an Excel (.xlsx) file — shortlist first, then others."""
     search, results = _get_all_results(search_id, db)
     xlsx_bytes = generate_excel(results)
@@ -67,7 +69,7 @@ def export_excel(search_id: uuid.UUID, db: Session = Depends(get_db)):
 
 
 @router.get("/searches/{search_id}/export/csv")
-def export_csv(search_id: uuid.UUID, db: Session = Depends(get_db)):
+def export_csv(search_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Download all results as a CSV file — shortlist first, then others."""
     search, results = _get_all_results(search_id, db)
     csv_content = generate_csv(results)
