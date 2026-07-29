@@ -40,7 +40,10 @@ services:
       args:
         VITE_REQUIRE_AUTH: ${VITE_REQUIRE_AUTH:-true}   # baked into the JS bundle at build time
     ports:
-      - "80:80"       # Only this container is exposed to the outside world
+      - "80:80"     # HTTP → redirects to HTTPS
+      - "443:443"   # HTTPS — the main entry point
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro   # self-signed cert mounted read-only
     depends_on:
       - backend
     restart: unless-stopped
