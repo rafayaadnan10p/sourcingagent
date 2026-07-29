@@ -5,7 +5,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import get_settings
 from app.limiter import limiter
-from app.routers import jd, search, export
+from app.routers import jd, search, export, auth
 
 settings = get_settings()
 
@@ -28,6 +28,7 @@ app.add_middleware(
 app.include_router(jd.router)
 app.include_router(search.router)
 app.include_router(export.router)
+app.include_router(auth.router)
 
 
 @app.get("/health")

@@ -20,7 +20,14 @@ class Settings(BaseSettings):
     # Microsoft Azure AD auth
     azure_client_id: str = ""
     azure_tenant_id: str = ""
+    azure_client_secret: str = ""   # Required for server-side OAuth (Web app type)
     require_auth: bool = False   # Set to True in production to enforce Microsoft login
+
+    # Server-side session signing key — must be a long random string in production
+    app_secret_key: str = "change-me-in-production"
+
+    # Base URL of the app — used to build the OAuth redirect_uri
+    app_base_url: str = "http://localhost:5173"
 
     # CORS — comma-separated origins stored as a single string in .env
     allowed_origins: str = "http://localhost:5173"
